@@ -1,4 +1,5 @@
-﻿using HRMS.Employee.Domain.Enums;
+﻿using HRMS.Employee.Domain.DomainEvents;
+using HRMS.Employee.Domain.Enums;
 using HRMS.Employee.Domain.ValueObjects;
 
 namespace HRMS.Employee.Domain.Entities;
@@ -11,6 +12,9 @@ public class Employee
     public DateTime JoiningDate { get; private set; }
     public EmploymentStatus Status { get; private set; }
     public ResignationDate? ResignationDate { get; private set; }
+
+    private readonly List<IDomainEvent> _domainEvents = new();
+    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents;
 
     public Employee(Guid employeeId,string name,string email, Guid departmentId, DateTime joiningDate)
     {
@@ -32,11 +36,10 @@ public class Employee
         {
             throw new InvalidOperationException("Terminated employee cannot resign.");
         }
-        if (resignationDate < JoiningDate)
-        {
-            throw new InvalidOperationException("Resignation date cannot be before joining date.");
-        }
+
         ResignationDate = new ResignationDate(resignationDate);
         Status = EmploymentStatus.Resigned;
+
+        _domainEvents.Add(new EmployeeResigned(EmployeeId,resignationDate));
     }
 }
