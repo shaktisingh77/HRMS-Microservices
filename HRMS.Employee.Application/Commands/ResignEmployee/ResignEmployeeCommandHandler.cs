@@ -1,8 +1,9 @@
 ﻿using HRMS.Employee.Domain.Repositories;
+using MediatR;
 
 namespace HRMS.Employee.Application.Commands.ResignEmployee;
 
-public sealed class ResignEmployeeCommandHandler
+public sealed class ResignEmployeeCommandHandler : IRequestHandler<ResignEmployeeCommand>
 {
     private readonly IEmployeeRepository _employeeRepository;
 
@@ -11,7 +12,7 @@ public sealed class ResignEmployeeCommandHandler
         _employeeRepository = employeeRepository;
     }
 
-    public async Task HandleAsync(ResignEmployeeCommand command)
+    public async Task Handle(ResignEmployeeCommand command, CancellationToken cancellationToken)
     {
         var employee = await _employeeRepository.GetByIdAsync(command.EmployeeId);
 
@@ -22,6 +23,6 @@ public sealed class ResignEmployeeCommandHandler
 
         employee.Resign(command.ResignationDate);
 
-        await _employeeRepository.SaveAsync(employee);
+        await _employeeRepository.UpdateAsync(employee);
     }
 }

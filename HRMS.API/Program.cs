@@ -1,5 +1,8 @@
 using HRMS.Employee.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using HRMS.Employee.Domain.Repositories;
+using HRMS.Employee.Infrastructure.Repositories;
+using HRMS.Employee.Application.Commands.ResignEmployee;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +16,10 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<EmployeeDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("HRMS")));
+
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+
+builder.Services.AddMediatR(cfg =>cfg.RegisterServicesFromAssembly(typeof(ResignEmployeeCommandHandler).Assembly));
 
 var app = builder.Build();
 

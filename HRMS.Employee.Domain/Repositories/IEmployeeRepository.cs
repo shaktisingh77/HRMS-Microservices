@@ -6,5 +6,7 @@ public interface IEmployeeRepository
 {
     Task<EmployeeEntity?> GetByIdAsync(Guid employeeId);
 
-    Task SaveAsync(EmployeeEntity employee);
+    Task AddAsync(EmployeeEntity employee);
+
+    Task UpdateAsync(EmployeeEntity employee);
 }
