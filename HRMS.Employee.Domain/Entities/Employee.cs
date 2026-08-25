@@ -3,7 +3,7 @@ using HRMS.Employee.Domain.Enums;
 using HRMS.Employee.Domain.ValueObjects;
 
 namespace HRMS.Employee.Domain.Entities;
-public class Employee
+public class Employee : IHasDomainEvents
 {
     public Guid EmployeeId { get; private set; }
     public string Name { get; private set; }
@@ -37,9 +37,20 @@ public class Employee
             throw new InvalidOperationException("Terminated employee cannot resign.");
         }
 
+        if (resignationDate.Date < DateTime.Today)
+        {
+            throw new ArgumentException(
+                "Resignation date cannot be in the past.");
+        }
+
         ResignationDate = new ResignationDate(resignationDate);
         Status = EmploymentStatus.Resigned;
 
         _domainEvents.Add(new EmployeeResigned(EmployeeId,resignationDate));
+    }
+
+    public void ClearDomainEvents()
+    {
+        _domainEvents.Clear();
     }
 }

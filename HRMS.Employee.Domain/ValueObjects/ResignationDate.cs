@@ -4,11 +4,7 @@
     {
         public DateTime Value { get; }
         public ResignationDate(DateTime value)
-        {
-            if (value.Date < DateTime.Today)
-            {
-                throw new ArgumentException("Resignation date cannot be in the past.");
-            }
+        {            
             Value = value.Date;
         }
     }

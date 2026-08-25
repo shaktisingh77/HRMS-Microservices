@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using HRMS.Employee.Domain.Repositories;
 using HRMS.Employee.Infrastructure.Repositories;
 using HRMS.Employee.Application.Commands.ResignEmployee;
+using HRMS.Employee.Infrastructure.DomainEvents;
+using HRMS.Employee.Application.DomainEvents;
+using HRMS.Employee.Domain.DomainEvents;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +23,10 @@ builder.Services.AddDbContext<EmployeeDbContext>(options =>
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 
 builder.Services.AddMediatR(cfg =>cfg.RegisterServicesFromAssembly(typeof(ResignEmployeeCommandHandler).Assembly));
+
+builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
+
+builder.Services.AddScoped<IDomainEventHandler<EmployeeResigned>,EmployeeResignedHandler>();
 
 var app = builder.Build();
 
