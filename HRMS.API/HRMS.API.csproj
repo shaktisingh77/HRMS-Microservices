@@ -16,7 +16,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\HRMS.Contracts\HRMS.Contracts.csproj" />
+    <ProjectReference Include="..\HRMS.Employee.Application\HRMS.Employee.Application.csproj" />
     <ProjectReference Include="..\HRMS.Employee.Infrastructure\HRMS.Employee.Infrastructure.csproj" />
+    <ProjectReference Include="..\HRMS.Payroll.Application\HRMS.Payroll.Application.csproj" />
   </ItemGroup>
 
 </Project>

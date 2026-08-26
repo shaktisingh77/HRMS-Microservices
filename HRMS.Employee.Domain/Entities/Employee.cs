@@ -1,9 +1,8 @@
-﻿using HRMS.Employee.Domain.DomainEvents;
-using HRMS.Employee.Domain.Enums;
+﻿using HRMS.Employee.Domain.Enums;
 using HRMS.Employee.Domain.ValueObjects;
 
 namespace HRMS.Employee.Domain.Entities;
-public class Employee : IHasDomainEvents
+public class Employee 
 {
     public Guid EmployeeId { get; private set; }
     public string Name { get; private set; }
@@ -12,9 +11,6 @@ public class Employee : IHasDomainEvents
     public DateTime JoiningDate { get; private set; }
     public EmploymentStatus Status { get; private set; }
     public ResignationDate? ResignationDate { get; private set; }
-
-    private readonly List<IDomainEvent> _domainEvents = new();
-    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents;
 
     public Employee(Guid employeeId,string name,string email, Guid departmentId, DateTime joiningDate)
     {
@@ -44,13 +40,6 @@ public class Employee : IHasDomainEvents
         }
 
         ResignationDate = new ResignationDate(resignationDate);
-        Status = EmploymentStatus.Resigned;
-
-        _domainEvents.Add(new EmployeeResigned(EmployeeId,resignationDate));
-    }
-
-    public void ClearDomainEvents()
-    {
-        _domainEvents.Clear();
+        Status = EmploymentStatus.Resigned;        
     }
 }
