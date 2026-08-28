@@ -1,12 +1,15 @@
-using HRMS.Employee.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-using HRMS.Employee.Domain.Repositories;
-using HRMS.Employee.Infrastructure.Repositories;
-using HRMS.Employee.Application.Commands.ResignEmployee;
 using HRMS.Contracts.Employee;
 using HRMS.Contracts.IntegrationEvents;
+using HRMS.Employee.Application.Commands.ResignEmployee;
+using HRMS.Employee.Domain.Repositories;
 using HRMS.Employee.Infrastructure.IntegrationEvents;
+using HRMS.Employee.Infrastructure.Persistence;
+using HRMS.Employee.Infrastructure.Repositories;
 using HRMS.Payroll.Application.IntegrationEvents;
+using HRMS.Payroll.Domain.Repositories;
+using HRMS.Payroll.Infrastructure.Persistence;
+using HRMS.Payroll.Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,13 +24,23 @@ builder.Services.AddDbContext<EmployeeDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("HRMS")));
 
+builder.Services.AddDbContext<PayrollDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("HRMS")));
+
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+
+builder.Services.AddScoped<IEmployeePayrollRepository, EmployeePayrollRepository>();
 
 builder.Services.AddMediatR(cfg =>cfg.RegisterServicesFromAssembly(typeof(ResignEmployeeCommandHandler).Assembly));
 
 builder.Services.AddScoped<IIntegrationEventDispatcher,IntegrationEventDispatcher>();
-builder.Services.AddScoped<IIntegrationEventHandler<EmployeeResignedIntegrationEvent>, PayrollEmployeeResignedHandler>();
 
+builder.Services.AddScoped<IIntegrationEventHandler<EmployeeResignedIntegrationEvent>,
+                                                    PayrollEmployeeResignedHandler>();
+
+builder.Services.AddScoped<IIntegrationEventHandler<EmployeeCreatedIntegrationEvent>, 
+                                                    PayrollEmployeeCreatedHandler>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

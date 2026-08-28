@@ -20,6 +20,7 @@
     <ProjectReference Include="..\HRMS.Employee.Application\HRMS.Employee.Application.csproj" />
     <ProjectReference Include="..\HRMS.Employee.Infrastructure\HRMS.Employee.Infrastructure.csproj" />
     <ProjectReference Include="..\HRMS.Payroll.Application\HRMS.Payroll.Application.csproj" />
+    <ProjectReference Include="..\HRMS.Payroll.Infrastructure\HRMS.Payroll.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
