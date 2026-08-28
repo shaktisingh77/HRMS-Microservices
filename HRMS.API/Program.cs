@@ -5,6 +5,10 @@ using HRMS.Employee.Domain.Repositories;
 using HRMS.Employee.Infrastructure.IntegrationEvents;
 using HRMS.Employee.Infrastructure.Persistence;
 using HRMS.Employee.Infrastructure.Repositories;
+using HRMS.Leave.Application.IntegrationEvents;
+using HRMS.Leave.Domain.Repositories;
+using HRMS.Leave.Infrastructure.Persistence;
+using HRMS.Leave.Infrastructure.Repositories;
 using HRMS.Payroll.Application.IntegrationEvents;
 using HRMS.Payroll.Application.Queries.GetEmployeePayroll;
 using HRMS.Payroll.Domain.Repositories;
@@ -44,6 +48,15 @@ builder.Services.AddDbContext<PayrollDbContext>(options =>
 builder.Services.AddScoped<IEmployeePayrollRepository,EmployeePayrollRepository>();
 
 builder.Services.AddScoped<GetEmployeePayrollQueryHandler>();
+
+// Leave related registrations
+builder.Services.AddDbContext<LeaveDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("HRMS")));
+
+builder.Services.AddScoped<ILeaveAccountRepository,LeaveAccountRepository>();
+builder.Services.AddScoped<IIntegrationEventHandler<EmployeeCreatedIntegrationEvent>,
+                            LeaveEmployeeCreatedHandler>();
 
 var app = builder.Build();
 

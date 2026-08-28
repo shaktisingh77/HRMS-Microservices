@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HRMS.Contracts\HRMS.Contracts.csproj" />
+    <ProjectReference Include="..\HRMS.Leave.Domain\HRMS.Leave.Domain.csproj" />
+  </ItemGroup>
+
+</Project>
