@@ -1,0 +1,31 @@
+﻿namespace HRMS.Employee.Infrastructure.Outbox;
+
+public class OutboxMessage
+{
+    public Guid Id { get; private set; }
+
+    public string Type { get; private set; } = null!;
+
+    public string Payload { get; private set; } = null!;
+
+    public DateTime OccurredOnUtc { get; private set; }
+
+    public DateTime? ProcessedOnUtc { get; private set; }
+
+    private OutboxMessage()
+    {
+    }
+
+    public OutboxMessage(Guid id, string type, string payload, DateTime occurredOnUtc)
+    {
+        Id = id;
+        Type = type;
+        Payload = payload;
+        OccurredOnUtc = occurredOnUtc;
+    }
+
+    public void MarkAsProcessed()
+    {
+        ProcessedOnUtc = DateTime.UtcNow;
+    }
+}

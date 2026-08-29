@@ -1,8 +1,10 @@
 using HRMS.Contracts.Employee;
 using HRMS.Contracts.IntegrationEvents;
 using HRMS.Employee.Application.Commands.ResignEmployee;
+using HRMS.Employee.Application.Outbox;
 using HRMS.Employee.Domain.Repositories;
 using HRMS.Employee.Infrastructure.IntegrationEvents;
+using HRMS.Employee.Infrastructure.Outbox;
 using HRMS.Employee.Infrastructure.Persistence;
 using HRMS.Employee.Infrastructure.Repositories;
 using HRMS.Leave.Application.IntegrationEvents;
@@ -31,6 +33,9 @@ builder.Services.AddDbContext<EmployeeDbContext>(options =>
         builder.Configuration.GetConnectionString("HRMS")));
 
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<IOutboxWriter, OutboxWriter>();
+builder.Services.AddHostedService<OutboxProcessor>();
+
 //Scan this assembly and find my handlers
 builder.Services.AddMediatR(cfg =>cfg.RegisterServicesFromAssembly(typeof(ResignEmployeeCommandHandler).Assembly));
 //Integration Events regsitration

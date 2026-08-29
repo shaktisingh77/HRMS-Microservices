@@ -9,4 +9,6 @@ public interface IEmployeeRepository
     Task AddAsync(EmployeeEntity employee);
 
     Task UpdateAsync(EmployeeEntity employee);
+
+    Task SaveChangesAsync();
 }

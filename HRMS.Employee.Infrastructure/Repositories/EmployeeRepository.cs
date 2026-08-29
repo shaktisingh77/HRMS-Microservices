@@ -22,12 +22,17 @@ public sealed class EmployeeRepository : IEmployeeRepository
     public async Task AddAsync(EmployeeEntity employee)
     {
         await _dbContext.Employees.AddAsync(employee);
-        await _dbContext.SaveChangesAsync();
+       // await _dbContext.SaveChangesAsync();
     }
 
     public async Task UpdateAsync(EmployeeEntity employee)
     {
         _dbContext.Employees.Update(employee);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task SaveChangesAsync()
+    {
         await _dbContext.SaveChangesAsync();
     }
 }
