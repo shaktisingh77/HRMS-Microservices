@@ -9,4 +9,6 @@ public interface IEmployeePayrollRepository
     Task AddAsync(EmployeePayroll employeePayroll);
 
     Task UpdateAsync(EmployeePayroll employeePayroll);
+
+    Task<bool> ExistsAsync(Guid employeeId);
 }

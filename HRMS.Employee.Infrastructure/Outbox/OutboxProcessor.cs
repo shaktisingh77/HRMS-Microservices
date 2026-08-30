@@ -4,16 +4,19 @@ using HRMS.Employee.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace HRMS.Employee.Infrastructure.Outbox;
 
 public sealed class OutboxProcessor : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger<OutboxProcessor> _logger;
 
-    public OutboxProcessor(IServiceScopeFactory scopeFactory)
+    public OutboxProcessor(IServiceScopeFactory scopeFactory, ILogger<OutboxProcessor> logger)
     {
         _scopeFactory = scopeFactory;
+        _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -21,36 +24,41 @@ public sealed class OutboxProcessor : BackgroundService
         while (!stoppingToken.IsCancellationRequested)
         {
             using var scope = _scopeFactory.CreateScope();
-
             var dbContext = scope.ServiceProvider.GetRequiredService<EmployeeDbContext>();
-
             var dispatcher = scope.ServiceProvider.GetRequiredService<IIntegrationEventDispatcher>();
 
             var messages = await dbContext.OutboxMessages
-                                          .Where(x => x.ProcessedOnUtc == null)
+                                          .Where(x => x.ProcessedOnUtc == null && x.RetryCount < 3)
                                           .OrderBy(x => x.OccurredOnUtc)
                                           .Take(20)
                                           .ToListAsync(stoppingToken);
 
             foreach (var message in messages)
             {
-                var eventType = Type.GetType(message.Type);
+                try
+                {
+                    var eventType = Type.GetType(message.Type);
 
-                if (eventType is null)
-                    continue;
+                    if (eventType is null)
+                        continue;
 
-                var integrationEvent = JsonSerializer.Deserialize(message.Payload,eventType) as IIntegrationEvent;
+                    var integrationEvent = JsonSerializer.Deserialize(message.Payload, eventType) 
+                                           as IIntegrationEvent;
 
-                if (integrationEvent is null)
-                    continue;
+                    if (integrationEvent is null)
+                        continue;
 
-                await dispatcher.DispatchAsync(integrationEvent);
-
-                message.MarkAsProcessed();
+                    await dispatcher.DispatchAsync(integrationEvent);
+                    message.MarkAsProcessed();
+                }
+                catch (Exception ex)
+                {
+                    message.MarkAsFailed(ex.Message);
+                    _logger.LogError(ex,"Error processing Outbox message {MessageId}",message.Id);
+                }
             }
 
             await dbContext.SaveChangesAsync(stoppingToken);
-
             await Task.Delay(TimeSpan.FromSeconds(5),stoppingToken);
         }
     }

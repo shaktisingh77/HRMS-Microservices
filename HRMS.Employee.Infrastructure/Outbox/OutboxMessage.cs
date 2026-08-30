@@ -3,14 +3,12 @@
 public class OutboxMessage
 {
     public Guid Id { get; private set; }
-
     public string Type { get; private set; } = null!;
-
     public string Payload { get; private set; } = null!;
-
     public DateTime OccurredOnUtc { get; private set; }
-
     public DateTime? ProcessedOnUtc { get; private set; }
+    public int RetryCount { get; private set; }
+    public string? Error { get; private set; }
 
     private OutboxMessage()
     {
@@ -27,5 +25,11 @@ public class OutboxMessage
     public void MarkAsProcessed()
     {
         ProcessedOnUtc = DateTime.UtcNow;
+    }
+
+    public void MarkAsFailed(string error)
+    {
+        RetryCount++;
+        Error = error;
     }
 }

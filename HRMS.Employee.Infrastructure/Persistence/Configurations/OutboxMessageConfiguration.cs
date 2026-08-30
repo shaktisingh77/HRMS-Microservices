@@ -20,6 +20,9 @@ public sealed class OutboxMessageConfiguration : IEntityTypeConfiguration<Outbox
         builder.Property(x => x.ProcessedOnUtc)
             .IsRequired(false);
 
+        builder.Property(x => x.Error)
+            .HasMaxLength(2000);
+
         builder.ToTable("OutboxMessages");
     }
 }

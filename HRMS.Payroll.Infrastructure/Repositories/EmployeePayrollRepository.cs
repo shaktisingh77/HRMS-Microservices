@@ -31,4 +31,9 @@ public class EmployeePayrollRepository : IEmployeePayrollRepository
         _dbContext.EmployeePayrolls.Update(employeePayroll);
         await _dbContext.SaveChangesAsync();
     }
+
+    public async Task<bool> ExistsAsync(Guid employeeId)
+    {
+        return await _dbContext.EmployeePayrolls.AnyAsync(x => x.EmployeeId == employeeId);
+    }
 }

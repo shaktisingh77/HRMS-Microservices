@@ -16,8 +16,12 @@ public sealed class LeaveEmployeeCreatedHandler : IIntegrationEventHandler<Emplo
 
     public async Task HandleAsync(EmployeeCreatedIntegrationEvent integrationEvent)
     {
-        var leaveAccount = new LeaveAccount(integrationEvent.EmployeeId);
+        var existingLeaveAccount = await _repository.GetByEmployeeIdAsync(integrationEvent.EmployeeId);
 
+        if (existingLeaveAccount is not null)
+            return;
+
+        var leaveAccount = new LeaveAccount(integrationEvent.EmployeeId);
         await _repository.AddAsync(leaveAccount);
     }
 }
