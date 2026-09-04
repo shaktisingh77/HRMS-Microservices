@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using HRMS.Contracts.IntegrationEvents;
+using HRMS.Employee.Infrastructure.Messaging;
 using HRMS.Employee.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,7 +26,9 @@ public sealed class OutboxProcessor : BackgroundService
         {
             using var scope = _scopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<EmployeeDbContext>();
-            var dispatcher = scope.ServiceProvider.GetRequiredService<IIntegrationEventDispatcher>();
+            //var dispatcher = scope.ServiceProvider.GetRequiredService<IIntegrationEventDispatcher>();
+
+            var publisher = scope.ServiceProvider.GetRequiredService<RabbitMqPublisher>();
 
             var messages = await dbContext.OutboxMessages
                                           .Where(x => x.ProcessedOnUtc == null && x.RetryCount < 3)
@@ -40,21 +43,23 @@ public sealed class OutboxProcessor : BackgroundService
                     var eventType = Type.GetType(message.Type);
 
                     if (eventType is null)
-                        continue;
+                        throw new InvalidOperationException($"Unable to resolve event type: {message.Type}");
 
-                    var integrationEvent = JsonSerializer.Deserialize(message.Payload, eventType) 
-                                           as IIntegrationEvent;
+                    var integrationEvent =
+                        JsonSerializer.Deserialize(message.Payload,eventType) as IIntegrationEvent;
 
                     if (integrationEvent is null)
-                        continue;
+                        throw new InvalidOperationException($"Unable to deserialize event: {message.Id}");
 
-                    await dispatcher.DispatchAsync(integrationEvent);
+                    await publisher.PublishAsync("hrms.events",eventType.Name,message.Payload);
+
                     message.MarkAsProcessed();
                 }
                 catch (Exception ex)
                 {
                     message.MarkAsFailed(ex.Message);
-                    _logger.LogError(ex,"Error processing Outbox message {MessageId}",message.Id);
+
+                    _logger.LogError(ex,"Failed to process OutboxMessage {MessageId}",message.Id);
                 }
             }
 

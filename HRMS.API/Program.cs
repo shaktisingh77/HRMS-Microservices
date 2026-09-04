@@ -1,19 +1,22 @@
-using HRMS.Contracts.Employee;
+﻿using HRMS.Contracts.Employee;
 using HRMS.Contracts.IntegrationEvents;
 using HRMS.Employee.Application.Commands.ResignEmployee;
 using HRMS.Employee.Application.Outbox;
 using HRMS.Employee.Domain.Repositories;
 using HRMS.Employee.Infrastructure.IntegrationEvents;
+using HRMS.Employee.Infrastructure.Messaging;
 using HRMS.Employee.Infrastructure.Outbox;
 using HRMS.Employee.Infrastructure.Persistence;
 using HRMS.Employee.Infrastructure.Repositories;
 using HRMS.Leave.Application.IntegrationEvents;
 using HRMS.Leave.Domain.Repositories;
+using HRMS.Leave.Infrastructure.Messaging;
 using HRMS.Leave.Infrastructure.Persistence;
 using HRMS.Leave.Infrastructure.Repositories;
 using HRMS.Payroll.Application.IntegrationEvents;
 using HRMS.Payroll.Application.Queries.GetEmployeePayroll;
 using HRMS.Payroll.Domain.Repositories;
+using HRMS.Payroll.Infrastructure.Messaging;
 using HRMS.Payroll.Infrastructure.Persistence;
 using HRMS.Payroll.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -23,49 +26,83 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//Employee registrations
+
+// ============================================================
+// Employee registrations
+// ============================================================
+
 builder.Services.AddDbContext<EmployeeDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("HRMS")));
 
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+
 builder.Services.AddScoped<IOutboxWriter, OutboxWriter>();
+
 builder.Services.AddHostedService<OutboxProcessor>();
 
-//Scan this assembly and find my handlers
-builder.Services.AddMediatR(cfg =>cfg.RegisterServicesFromAssembly(typeof(ResignEmployeeCommandHandler).Assembly));
-//Integration Events regsitration
+builder.Services.AddScoped<RabbitMqPublisher>();
+
+
+// MediatR
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssembly(
+        typeof(ResignEmployeeCommandHandler).Assembly));
+
+
+// Integration Event Dispatcher
 builder.Services.AddScoped<IIntegrationEventDispatcher,IntegrationEventDispatcher>();
 
-builder.Services.AddScoped<IIntegrationEventHandler<EmployeeResignedIntegrationEvent>,
-                                                    PayrollEmployeeResignedHandler>();
 
-builder.Services.AddScoped<IIntegrationEventHandler<EmployeeCreatedIntegrationEvent>, 
-                                                    PayrollEmployeeCreatedHandler>();
-//Payroll realated registrations 
+// Employee Resigned event handler
+builder.Services.AddScoped<IIntegrationEventHandler<EmployeeResignedIntegrationEvent>, PayrollEmployeeResignedHandler>();
+
+
+// ============================================================
+// Payroll registrations
+// ============================================================
+
 builder.Services.AddDbContext<PayrollDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("HRMS")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("HRMS")));
 
 builder.Services.AddScoped<IEmployeePayrollRepository,EmployeePayrollRepository>();
 
 builder.Services.AddScoped<GetEmployeePayrollQueryHandler>();
 
-// Leave related registrations
+// Payroll RabbitMQ handler
+builder.Services.AddScoped<PayrollEmployeeCreatedHandler>();
+
+// Payroll RabbitMQ consumer
+builder.Services.AddHostedService<PayrollRabbitMqConsumer>();
+
+// ============================================================
+// Leave registrations
+// ============================================================
+
 builder.Services.AddDbContext<LeaveDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("HRMS")));
 
 builder.Services.AddScoped<ILeaveAccountRepository,LeaveAccountRepository>();
-builder.Services.AddScoped<IIntegrationEventHandler<EmployeeCreatedIntegrationEvent>,
-                            LeaveEmployeeCreatedHandler>();
+
+
+// Leave RabbitMQ handler
+builder.Services.AddScoped<LeaveEmployeeCreatedHandler>();
+
+// Leave RabbitMQ consumer
+builder.Services.AddHostedService<LeaveRabbitMqConsumer>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// ============================================================
+// HTTP request pipeline
+// ============================================================
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
