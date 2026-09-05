@@ -1,5 +1,5 @@
 ﻿using HRMS.Contracts.Employee;
-using HRMS.Contracts.IntegrationEvents;
+using HRMS.Employee.Application.Outbox;
 using HRMS.Employee.Domain.Repositories;
 using MediatR;
 
@@ -8,31 +8,32 @@ namespace HRMS.Employee.Application.Commands.ResignEmployee;
 public sealed class ResignEmployeeCommandHandler : IRequestHandler<ResignEmployeeCommand>
 {
     private readonly IEmployeeRepository _employeeRepository;
-    private readonly IIntegrationEventDispatcher _integrationEventDispatcher;
+    private readonly IOutboxWriter _outboxWriter;
 
-    public ResignEmployeeCommandHandler(IEmployeeRepository employeeRepository,
-                                        IIntegrationEventDispatcher integrationEventDispatcher)
+    public ResignEmployeeCommandHandler(IEmployeeRepository employeeRepository, IOutboxWriter outboxWriter)
     {
         _employeeRepository = employeeRepository;
-        _integrationEventDispatcher = integrationEventDispatcher;
+        _outboxWriter = outboxWriter;
     }
 
-    public async Task Handle(ResignEmployeeCommand command, CancellationToken cancellationToken)
+    public async Task Handle(ResignEmployeeCommand command,CancellationToken cancellationToken)
     {
         var employee = await _employeeRepository.GetByIdAsync(command.EmployeeId);
 
         if (employee is null)
         {
-            throw new InvalidOperationException("Employee not found.");
+            throw new InvalidOperationException(
+                "Employee not found.");
         }
 
         employee.Resign(command.ResignationDate);
 
         await _employeeRepository.UpdateAsync(employee);
 
-        await _integrationEventDispatcher.DispatchAsync(
-                                          new EmployeeResignedIntegrationEvent(
-                                          employee.EmployeeId,
-                                          employee.ResignationDate!.Value));
+        var integrationEvent = new EmployeeResignedIntegrationEvent(employee.EmployeeId,employee.ResignationDate!.Value);
+
+        await _outboxWriter.AddAsync(integrationEvent);
+
+        await _employeeRepository.SaveChangesAsync();
     }
 }
