@@ -26,4 +26,8 @@
     <ProjectReference Include="..\HRMS.Employee.Domain\HRMS.Employee.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="IntegrationEvents\" />
+  </ItemGroup>
+
 </Project>

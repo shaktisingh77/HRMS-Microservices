@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MediatR" Version="14.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\HRMS.Contracts\HRMS.Contracts.csproj" />
     <ProjectReference Include="..\HRMS.Leave.Domain\HRMS.Leave.Domain.csproj" />
   </ItemGroup>

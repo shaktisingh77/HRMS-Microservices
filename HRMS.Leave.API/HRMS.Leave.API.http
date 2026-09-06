@@ -1,0 +1,6 @@
+@HRMS.Leave.API_HostAddress = http://localhost:5193
+
+GET {{HRMS.Leave.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

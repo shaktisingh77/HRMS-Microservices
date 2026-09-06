@@ -14,8 +14,7 @@ public sealed class PayrollEmployeeCreatedHandler : IIntegrationEventHandler<Emp
         _repository = repository;
     }
 
-    public async Task HandleAsync(
-    EmployeeCreatedIntegrationEvent integrationEvent)
+    public async Task HandleAsync(EmployeeCreatedIntegrationEvent integrationEvent)
     {
         var exists = await _repository.ExistsAsync(integrationEvent.EmployeeId);
 

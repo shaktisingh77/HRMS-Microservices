@@ -1,3 +1,6 @@
-﻿namespace HRMS.Payroll.Application.Queries.GetEmployeePayroll;
+﻿using HRMS.Payroll.Application.DTOs;
+using MediatR;
 
-public sealed record GetEmployeePayrollQuery(Guid EmployeeId);
+namespace HRMS.Payroll.Application.Queries.GetEmployeePayroll;
+
+public sealed record GetEmployeePayrollQuery(Guid EmployeeId) : IRequest<EmployeePayrollDto?>;

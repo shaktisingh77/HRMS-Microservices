@@ -25,8 +25,7 @@ public sealed class OutboxProcessor : BackgroundService
         while (!stoppingToken.IsCancellationRequested)
         {
             using var scope = _scopeFactory.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<EmployeeDbContext>();
-            //var dispatcher = scope.ServiceProvider.GetRequiredService<IIntegrationEventDispatcher>();
+            var dbContext = scope.ServiceProvider.GetRequiredService<EmployeeDbContext>();           
 
             var publisher = scope.ServiceProvider.GetRequiredService<RabbitMqPublisher>();
 
