@@ -30,7 +30,7 @@ public sealed class OutboxProcessor : BackgroundService
             var publisher = scope.ServiceProvider.GetRequiredService<RabbitMqPublisher>();
 
             var messages = await dbContext.OutboxMessages
-                                          .Where(x => x.ProcessedOnUtc == null && x.RetryCount < 3)
+                                          .Where(x => x.ProcessedOnUtc == null)
                                           .OrderBy(x => x.OccurredOnUtc)
                                           .Take(20)
                                           .ToListAsync(stoppingToken);
